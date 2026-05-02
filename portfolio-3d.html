@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marco Antônio | Portfolio 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d4ff;
+            --secondary: #ff006e;
+            --dark-bg: #0a0e27;
+            --card-bg: #1a1f3a;
+            --text-primary: #e0e6ff;
+            --text-secondary: #a8b2d1;
+            --accent: #00f7ff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #1a0033 100%);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Canvas 3D */
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            display: block;
+        }
+
+        /* Overlay Content */
+        .content {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+        }
+
+        /* Header Navigation */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            padding: 2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 14, 39, 0.7);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+            z-index: 10;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            display: flex;
+            gap: 2rem;
+        }
+
+        nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--primary);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .hero-content {
+            animation: fadeInUp 1s ease-out;
+            z-index: 5;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: var(--dark-bg);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Sections */
+        .section {
+            min-height: 100vh;
+            padding: 6rem 3rem;
+            position: relative;
+            z-index: 5;
+        }
+
+        .section h2 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .section-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* About Section */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin-bottom: 3rem;
+        }
+
+        .about-text h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .about-text p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+
+        .info-box {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            padding: 2rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+        }
+
+        .info-box strong {
+            color: var(--primary);
+        }
+
+        /* Skills Section */
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .skill-card {
+            background: rgba(26, 31, 58, 0.6);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .skill-card:hover {
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+
+        .skill-card h4 {
+            margin: 1rem 0 0.5rem;
+            color: var(--primary);
+        }
+
+        .skill-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Projects Section */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .project-card {
+            background: linear-gradient(135deg, rgba(26, 31, 58, 0.8), rgba(26, 31, 58, 0.4));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        .project-header {
+            height: 150px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            opacity: 0.8;
+        }
+
+        .project-content {
+            padding: 1.5rem;
+        }
+
+        .project-content h3 {
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .project-content p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .project-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        /* Contact Section */
+        .contact-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .contact-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .contact-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+
+        .contact-item h3 {
+            color: var(--primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .contact-item p {
+            color: var(--text-secondary);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .social-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 1.3rem;
+        }
+
+        .social-btn:hover {
+            background: rgba(0, 212, 255, 0.1);
+            transform: scale(1.2) translateY(-5px);
+        }
+
+        .contact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            background: rgba(26, 31, 58, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            color: var(--text-primary);
+            padding: 0.8rem;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            resize: none;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+            border-top: 1px solid rgba(0, 212, 255, 0.1);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(0, 212, 255, 0.6);
+            }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            z-index: 5;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            50% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            nav {
+                gap: 1rem;
+                font-size: 0.9rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-content {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 4rem 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <header>
+        <div class="logo">Marcus-Austin</div>
+        <nav>
+            <a href="#home">Home</a>
+            <a href="#about">Sobre</a>
+            <a href="#skills">Skills</a>
+            <a href="#projects">Projetos</a>
+            <a href="#contact">Contato</a>
+        </nav>
+    </header>
+
+    <div class="content">
+        <!-- Hero Section -->
+        <section id="home" class="hero">
+            <div class="hero-content">
+                <h1>Marco Antônio<br>Desenvolvimento 3D</h1>
+                <p>Backend Developer | Java | Node.js | Fullstack Developer</p>
+                <div class="cta-buttons">
+                    <a href="#projects" class="btn btn-primary">Ver Projetos</a>
+                    <a href="#contact" class="btn btn-secondary">Entre em Contato</a>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <div style="color: var(--primary); font-size: 1.5rem;">⬇</div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="section">
+            <h2>Sobre Mim</h2>
+            <div class="section-content">
+                <div class="about-grid">
+                    <div class="about-text">
+                        <h3>Quem Sou Eu?</h3>
+                        <p>
+                            Olá! Meu nome é Marco Antônio dos Santos Barros Filho, também conhecido como Marcus-Austin. 
+                            Tenho 22 anos, sou brasileiro, nascido em Salvador, Bahia, e estou finalizando meu grau em 
+                            Análise e Desenvolvimento de Sistemas pela FAVENI.
+                        </p>
+                        <p>
+                            Tenho uma paixão profunda por tecnologia, programação e criação de sistemas que podem melhorar 
+                            a vida das pessoas. Ao longo da minha jornada acadêmica e projetos pessoais, desenvolvi um grande 
+                            interesse em desenvolvimento backend, especialmente usando Java e Node.js, e também gosto muito de 
+                            trabalhar como desenvolvedor fullstack.
+                        </p>
+                    </div>
+                    <div>
+                        <div class="info-box">
+                            <h4>📍 Localização</h4>
+                            <p>Salvador, Bahia - Brasil</p>
+                        </div>
+                        <div class="info-box">
+                            <h4>🎓 Educação</h4>
+                            <p><strong>Análise e Desenvolvimento de Sistemas</strong><br>FAVENI</p>
+                        </div>
+                        <div class="info-box">
+                            <h4>💼 Objetivo</h4>
+                            <p> BusacandoPrimeira oportunidade como desenvolvedor <strong>Java</strong> ou <strong>Node.js</strong>, 
+                            onde possa aplicar minhas habilidades, crescer profissionalmente e contribuir significativamente 
+                            para projetos reais.</p>
+                        </div>
+                        <div class="info-box">
+                            <h4>🎂 Idade</h4>
+                            <p><strong>22 anos</strong></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="section">
+            <h2>Habilidades Técnicas</h2>
+            <div class="section-content">
+                <div class="skills-grid">
+                    <div class="skill-card">
+                        <div class="skill-icon">☕</div>
+                        <h4>Java</h4>
+                        <p>Backend Development</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">📦</div>
+                        <h4>Node.js</h4>
+                        <p>Server-side JavaScript</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">⚛️</div>
+                        <h4>React</h4>
+                        <p>Frontend Development</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">🗄️</div>
+                        <h4>Databases</h4>
+                        <p>SQL & NoSQL</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">🔌</div>
+                        <h4>APIs REST</h4>
+                        <p>API Development</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">🎨</div>
+                        <h4>Frontend</h4>
+                        <p>HTML, CSS, JavaScript</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">🔧</div>
+                        <h4>Ferramentas</h4>
+                        <p>Git, Docker, Linux</p>
+                    </div>
+                    <div class="skill-card">
+                        <div class="skill-icon">⚙️</div>
+                        <h4>Fullstack</h4>
+                        <p>Desenvolvimento Completo</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="section">
+            <h2>Projetos Destacados</h2>
+            <div class="section-content">
+                <div class="projects-grid">
+                    <div class="project-card">
+                        <div class="project-header">🚀</div>
+                        <div class="project-content">
+                            <h3>Portfolio 3D Interativo</h3>
+                            <p>Um portfolio moderno e inovador desenvolvido com Three.js, showcasing habilidades em visualização 3D e web design contemporâneo.</p>
+                            <div class="project-tags">
+                                <span class="tag">Three.js</span>
+                                <span class="tag">WebGL</span>
+                                <span class="tag">HTML5</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <div class="project-header">💻</div>
+                        <div class="project-content">
+                            <h3>Aplicação Backend em Java</h3>
+                            <p>Sistema robusto de gerenciamento desenvolvido em Java com arquitetura bem estruturada e boas práticas de desenvolvimento.</p>
+                            <div class="project-tags">
+                                <span class="tag">Java</span>
+                                <span class="tag">Spring</span>
+                                <span class="tag">PostgreSQL</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <div class="project-header">🌐</div>
+                        <div class="project-content">
+                            <h3>API REST com Node.js</h3>
+                            <p>API escalável desenvolvida com Node.js e Express, seguindo padrões RESTful e boas práticas de segurança.</p>
+                            <div class="project-tags">
+                                <span class="tag">Node.js</span>
+                                <span class="tag">Express</span>
+                                <span class="tag">MongoDB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section">
+            <h2>Entre em Contato</h2>
+            <div class="section-content">
+                <div class="contact-content">
+                    <div class="contact-info">
+                        <h3>Vamos Conectar!</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                            Estou sempre aberto a novas oportunidades, desafios e conversas sobre tecnologia. 
+                            Sinta-se à vontade para me contatar por qualquer uma das formas abaixo.
+                        </p>
+
+                        <div class="contact-item">
+                            <span class="contact-icon">📧</span>
+                            <div>
+                                <h3>Email</h3>
+                                <p>marcobarros_15@hotmail.com</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <span class="contact-icon">🔗</span>
+                            <div>
+                                <h3>GitHub</h3>
+                                <a href="https://github.com/Marcus-Austin" style="color: var(--primary); text-decoration: none;">
+                                    github.com/Marcus-Austin
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <span class="contact-icon">💼</span>
+                            <div>
+                                <h3>LinkedIn</h3>
+                                <p>www.linkedin.com/in/marco-antônio-dos-santos-barros-filho-7129b9395</p>
+                            </div>
+                        </div>
+
+                        <div class="contact-item">
+                            <span class="contact-icon">📱</span>
+                            <div>
+                                <h3>Localização</h3>
+                                <p>Salvador, Bahia - Brasil</p>
+                            </div>
+                        </div>
+
+                        <div class="social-links">
+                            <a href="https://github.com/Marcus-Austin" class="social-btn" title="GitHub">
+                                <span style="font-size: 1.5rem;">⚙️</span>
+                            </a>
+                            <a href="#" class="social-btn" title="LinkedIn">
+                                <span style="font-size: 1.5rem;">💼</span>
+                            </a>
+                            <a href="#" class="social-btn" title="Twitter">
+                                <span style="font-size: 1.5rem;">🐦</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="contact-form">
+                        <h3>Envie uma Mensagem</h3>
+                        <div class="form-group">
+                            <label for="name">Seu Nome</label>
+                            <input type="text" id="name" placeholder="João Silva">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Seu Email</label>
+                            <input type="email" id="email" placeholder="joao@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label for="subject">Assunto</label>
+                            <input type="text" id="subject" placeholder="Oportunidade de trabalho">
+                        </div>
+                        <div class="form-group">
+                            <label for="message">Mensagem</label>
+                            <textarea id="message" placeholder="Sua mensagem aqui..."></textarea>
+                        </div>
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Enviar Mensagem</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer>
+            <p>&copy; 2024 Marco Antônio dos Santos Barros Filho. Desenvolvido com ❤️ e Three.js</p>
+        </footer>
+    </div>
+
+    <script>
+        // Three.js Setup
+        const canvas = document.getElementById('canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        
+        camera.position.z = 5;
+
+        // Create floating cubes
+        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const material = new THREE.MeshPhongMaterial({
+            color: 0x00d4ff,
+            emissive: 0x00d4ff,
+            emissiveIntensity: 0.2,
+            wireframe: false
+        });
+
+        const cubes = [];
+        for (let i = 0; i < 5; i++) {
+            const cube = new THREE.Mesh(geometry, material.clone());
+            cube.position.x = (Math.random() - 0.5) * 10;
+            cube.position.y = (Math.random() - 0.5) * 10;
+            cube.position.z = (Math.random() - 0.5) * 10;
+            cube.rotation.x = Math.random() * Math.PI;
+            cube.rotation.y = Math.random() * Math.PI;
+            cube.scale.set(
+                0.5 + Math.random(),
+                0.5 + Math.random(),
+                0.5 + Math.random()
+            );
+            cube.velocity = {
+                x: (Math.random() - 0.5) * 0.02,
+                y: (Math.random() - 0.5) * 0.02,
+                z: (Math.random() - 0.5) * 0.02
+            };
+            scene.add(cube);
+            cubes.push(cube);
+        }
+
+        // Create a torus knot
+        const torusGeometry = new THREE.TorusKnotGeometry(2, 0.6, 100, 16);
+        const torusMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff006e,
+            emissive: 0xff006e,
+            emissiveIntensity: 0.3,
+            wireframe: false
+        });
+        const torusKnot = new THREE.Mesh(torusGeometry, torusMaterial);
+        torusKnot.position.set(-3, 0, 0);
+        scene.add(torusKnot);
+
+        // Create an icosahedron
+        const icoGeometry = new THREE.IcosahedronGeometry(1.5, 4);
+        const icoMaterial = new THREE.MeshPhongMaterial({
+            color: 0x00f7ff,
+            emissive: 0x00f7ff,
+            emissiveIntensity: 0.2
+        });
+        const icosahedron = new THREE.Mesh(icoGeometry, icoMaterial);
+        icosahedron.position.set(3, 0, 0);
+        scene.add(icosahedron);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+
+        const pointLight1 = new THREE.PointLight(0x00d4ff, 1.5);
+        pointLight1.position.set(5, 5, 5);
+        scene.add(pointLight1);
+
+        const pointLight2 = new THREE.PointLight(0xff006e, 1.5);
+        pointLight2.position.set(-5, -5, 5);
+        scene.add(pointLight2);
+
+        // Variables for scroll tracking
+        let scrollProgress = 0;
+
+        // Handle scroll event
+        window.addEventListener('scroll', () => {
+            scrollProgress = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Rotate and move cubes
+            cubes.forEach(cube => {
+                cube.rotation.x += cube.velocity.x;
+                cube.rotation.y += cube.velocity.y;
+                cube.rotation.z += cube.velocity.z;
+
+                cube.position.x += cube.velocity.x;
+                cube.position.y += cube.velocity.y;
+                cube.position.z += cube.velocity.z;
+
+                // Bounce back if out of bounds
+                if (Math.abs(cube.position.x) > 5) cube.velocity.x *= -1;
+                if (Math.abs(cube.position.y) > 5) cube.velocity.y *= -1;
+                if (Math.abs(cube.position.z) > 5) cube.velocity.z *= -1;
+
+                // Fade based on scroll
+                cube.material.emissiveIntensity = 0.2 + scrollProgress * 0.3;
+            });
+
+            // Rotate torus knot
+            torusKnot.rotation.x += 0.003;
+            torusKnot.rotation.y += 0.005;
+            torusKnot.material.emissiveIntensity = 0.3 + Math.sin(Date.now() * 0.001) * 0.2;
+
+            // Rotate icosahedron
+            icosahedron.rotation.x += 0.002;
+            icosahedron.rotation.y += 0.003;
+            icosahedron.material.emissiveIntensity = 0.2 + Math.cos(Date.now() * 0.001) * 0.15;
+
+            // Camera interaction based on scroll
+            camera.position.y = scrollProgress * 5;
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Form handling
+        document.querySelector('.btn-primary:last-of-type')?.addEventListener('click', function(e) {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const subject = document.getElementById('subject').value;
+            const message = document.getElementById('message').value;
+
+            if (name && email && subject && message) {
+                alert(`Obrigado, ${name}! Sua mensagem foi recebida. Entrarei em contato em breve!`);
+                document.getElementById('name').value = '';
+                document.getElementById('email').value = '';
+                document.getElementById('subject').value = '';
+                document.getElementById('message').value = '';
+            } else {
+                alert('Por favor, preencha todos os campos!');
+            }
+        });
+
+        // Smooth scroll for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && document.querySelector(href)) {
+                    e.preventDefault();
+                    document.querySelector(href).scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
